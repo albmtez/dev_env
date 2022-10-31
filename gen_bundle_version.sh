@@ -23,6 +23,7 @@ function usage {
     echo "  k3d            - K3d"
     echo "  kind           - Kind"
     echo "  knative        - Knative"
+    echo "  terraform      - Terraform"
 }
 
 function git_install {
@@ -284,7 +285,7 @@ function kubens_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubens_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubens_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubens_arch_arch}/kubens ]] && ln -s $BUNDLESDIR/kubens/default-$PLATFORM-${kubens_arch} $BINDIR/$PLATFORM-${kubens_arch}/kubens
+    [[ ! -f $BINDIR/$PLATFORM-${kubens_arch}/kubens ]] && ln -s $BUNDLESDIR/kubens/default-$PLATFORM-${kubens_arch} $BINDIR/$PLATFORM-${kubens_arch}/kubens
 
     unset tmpDir
     unset kubens_arch
@@ -421,6 +422,44 @@ function knative_install {
     unset latest
 }
 
+function terraform_install {
+    echo "Terraform install"
+
+    # Get the latest version
+    latest=$(wget -qO- https://releases.hashicorp.com/terraform/ | grep -oP 'terraform_[0-9\.]+<' | grep -oP 'terraform_[0-9.]+' | grep -oP '[0-9\.]+' | head -n 1)
+
+    # Arch x86_64 replaced by amd64
+    terraform_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && terraform_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/terraform/terraform-v${latest}-$PLATFORM-${kubens_arch} ] && echo "Terraform version v${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/terraform ]] && mkdir -p $BUNDLESDIR/terraform
+
+    # Download terraform
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest Terraform version: v${latest}"
+    wget --quiet --continue --show-progress https://releases.hashicorp.com/terraform/${latest}/terraform_${latest}_${PLATFORM}_${terraform_arch}.zip
+    unzip terraform_${latest}_${PLATFORM}_${terraform_arch}.zip
+
+    mv terraform $BUNDLESDIR/terraform/terraform-${latest}-$PLATFORM-${terraform_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/terraform/default-$PLATFORM-${terraform_arch}
+    ln -s terraform-$latest-$PLATFORM-${terraform_arch} $BUNDLESDIR/terraform/default-$PLATFORM-${terraform_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${terraform_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${terraform_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${terraform_arch}/terraform ]] && ln -s $BUNDLESDIR/terraform/default-$PLATFORM-${terraform_arch} $BINDIR/$PLATFORM-${terraform_arch}/terraform
+
+    unset tmpDir
+    unset terraform_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -479,6 +518,9 @@ case "$1" in
     "knative")
         knative_install
         ;;
+    "terraform")
+        terraform_install
+        ;;
     "all")
         git_install
         maven_install
@@ -490,6 +532,9 @@ case "$1" in
         kubens_install
         k3sup_install
         k3d_install
+        kind_install
+        knative_install
+        terraform_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
