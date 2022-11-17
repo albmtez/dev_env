@@ -24,6 +24,7 @@ function usage {
     echo "  kind           - Kind"
     echo "  knative        - Knative"
     echo "  terraform      - Terraform"
+    echo "  yq             - yq"
 }
 
 function git_install {
@@ -460,6 +461,37 @@ function terraform_install {
     unset latest
 }
 
+function yq_install {
+    echo "yq install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 replaced by amd64
+    yq_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && yq_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/yq/yq-${latest}-$PLATFORM-${yq_arch} ] && echo "yq version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/yq ]] && mkdir -p $BUNDLESDIR/yq
+
+    # Download yq
+    echo "Installing yq version ${latest}"    
+    curl -L "https://github.com/mikefarah/yq/releases/download/${latest}/yq_${PLATFORM}_${yq_arch}" -o $BUNDLESDIR/yq/yq-${latest}-$PLATFORM-${yq_arch}
+    chmod +x $BUNDLESDIR/yq/yq-${latest}-$PLATFORM-$yq_arch
+
+    # Set the default version
+    rm -f $BUNDLESDIR/yq/default-$PLATFORM-${yq_arch}
+    ln -s yq-$latest-$PLATFORM-${yq_arch} $BUNDLESDIR/yq/default-$PLATFORM-${yq_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${yq_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${yq_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${yq_arch}/yq ]] && ln -s $BUNDLESDIR/yq/default-$PLATFORM-${yq_arch} $BINDIR/$PLATFORM-${yq_arch}/yq
+
+    unset yq_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -521,6 +553,9 @@ case "$1" in
     "terraform")
         terraform_install
         ;;
+    "yq")
+        yq_install
+        ;;
     "all")
         git_install
         maven_install
@@ -535,6 +570,7 @@ case "$1" in
         kind_install
         knative_install
         terraform_install
+        yq_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
