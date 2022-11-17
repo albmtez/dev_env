@@ -65,6 +65,7 @@ export NVM_DIR="$DEV_ENV_MODULES_BASE/nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 # rbenv
+RBENV_ROOT=$DEV_ENV_MODULES_BASE/rbenv
 eval "$($DEV_ENV_MODULES_BASE/rbenv/bin/rbenv init - zsh)"
 
 # ruby-build (needed by rbenv to be able to execute 'rbenv install')
