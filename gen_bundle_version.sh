@@ -25,6 +25,7 @@ function usage {
     echo "  knative        - Knative"
     echo "  terraform      - Terraform"
     echo "  yq             - yq"
+    echo "  conftest       - conftest"
 }
 
 function git_install {
@@ -492,6 +493,47 @@ function yq_install {
     unset latest
 }
 
+function conftest_install {
+    echo "conftest install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/open-policy-agent/conftest/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    latest_package=$(echo ${latest} | cut -c 2-)
+
+    # Arch x86_64 used in package names
+    conftest_arch_package=$ARCH
+    [ $ARCH = 'x86_64' ] && conftest_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/conftest/conftest-${latest}-$PLATFORM-${conftest_arch} ] && echo "conftest version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/conftest ]] && mkdir -p $BUNDLESDIR/conftest
+
+    # Download conftest
+    platform_package="$(tr '[:lower:]' '[:upper:]' <<< ${PLATFORM:0:1})${PLATFORM:1}"
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest conftest version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/open-policy-agent/conftest/releases/download/${latest}/conftest_${latest_package}_${platform_package}_${conftest_arch_package}.tar.gz
+    tar xzvf conftest_${latest_package}_${platform_package}_${conftest_arch_package}.tar.gz
+
+    mv conftest $BUNDLESDIR/conftest/conftest-${latest}-$PLATFORM-${conftest_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/conftest/default-$PLATFORM-${conftest_arch}
+    ln -s conftest-$latest-$PLATFORM-${conftest_arch} $BUNDLESDIR/conftest/default-$PLATFORM-${conftest_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${conftest_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${conftest_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${conftest_arch}/conftest ]] && ln -s $BUNDLESDIR/conftest/default-$PLATFORM-${conftest_arch} $BINDIR/$PLATFORM-${conftest_arch}/conftest
+
+    unset platform_package
+    unset tmpDir
+    unset conftest_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -556,6 +598,9 @@ case "$1" in
     "yq")
         yq_install
         ;;
+    "conftest")
+        conftest_install
+        ;;
     "all")
         git_install
         maven_install
@@ -571,6 +616,7 @@ case "$1" in
         knative_install
         terraform_install
         yq_install
+        conftest_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
