@@ -1,3 +1,6 @@
 [submodule "modules/goenv"]
 	path = modules/goenv
 	url = https://github.com/syndbg/goenv
+[submodule "modules/pyenv"]
+	path = modules/pyenv
+	url = https://github.com/pyenv/pyenv

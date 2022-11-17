@@ -54,6 +54,11 @@ export GOENV_ROOT="$DEV_ENV_MODULES_BASE/goenv"
 export PATH="$GOENV_ROOT/bin:$PATH"
 eval "$(goenv init -)"
 
+#pyenv
+export PYENV_ROOT="$DEV_ENV_MODULES_BASE/pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
 ## Aliases
 alias k=kubectl
 alias kcc=kubectx
