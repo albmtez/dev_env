@@ -26,6 +26,7 @@ function usage {
     echo "  terraform      - Terraform"
     echo "  yq             - yq"
     echo "  conftest       - conftest"
+    echo "  kubeconform    - kubeconform"
 }
 
 function git_install {
@@ -534,6 +535,46 @@ function conftest_install {
     unset latest
 }
 
+function kubeconform_install {
+    echo "kubeconform install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/yannh/kubeconform/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    kubeconform_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && kubeconform_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/kubeconform/kubeconform-${latest}-$PLATFORM-${kubeconform_arch} ] && echo "kubeconform version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/kubeconform ]] && mkdir -p $BUNDLESDIR/kubeconform
+
+    # Download kubeconform
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest kubeconform version: ${latest}"
+echo "https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz"
+    wget --quiet --continue --show-progress https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz
+    tar xzvf kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz
+
+    mv kubeconform $BUNDLESDIR/kubeconform/kubeconform-${latest}-$PLATFORM-${kubeconform_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/kubeconform/default-$PLATFORM-${kubeconform_arch}
+    ln -s kubeconform-$latest-$PLATFORM-${kubeconform_arch} $BUNDLESDIR/kubeconform/default-$PLATFORM-${kubeconform_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${kubeconform_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubeconform_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform ]] && ln -s $BUNDLESDIR/kubeconform/default-$PLATFORM-${kubeconform_arch} $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform
+
+    unset platform_package
+    unset tmpDir
+    unset kubeconform_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -601,6 +642,9 @@ case "$1" in
     "conftest")
         conftest_install
         ;;
+    "kubeconform")
+        kubeconform_install
+        ;;
     "all")
         git_install
         maven_install
@@ -617,6 +661,7 @@ case "$1" in
         terraform_install
         yq_install
         conftest_install
+        kubeconform_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
