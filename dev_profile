@@ -67,6 +67,9 @@ export NVM_DIR="$DEV_ENV_MODULES_BASE/nvm"
 # rbenv
 eval "$($DEV_ENV_MODULES_BASE/rbenv/bin/rbenv init - zsh)"
 
+# ruby-build (needed by rbenv to be able to execute 'rbenv install')
+export PATH=$DEV_ENV_MODULES_BASE/ruby-build/bin:$PATH
+
 ## Aliases
 alias k=kubectl
 alias kcc=kubectx
