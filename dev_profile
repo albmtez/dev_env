@@ -1,4 +1,4 @@
-# Dev environment configuration
+## Dev environment configuration
 
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
@@ -23,8 +23,13 @@ export DEV_ENV_BASE=$HOME/dev_env
 # Bundles base
 DEV_ENV_BUNDLES_BASE=$DEV_ENV_BASE/bundles
 
+# Modules base
+DEV_ENV_MODULES_BASE=$DEV_ENV_BASE/modules
+
 # Code base dir
 export CODE_BASE=$HOME/code
+
+## Bundles
 
 # Git config
 DEV_ENV_GIT_HOME=$DEV_ENV_BUNDLES_BASE/git/default-$PLATFORM-$ARCH
@@ -38,11 +43,18 @@ export PATH=$MAVEN_HOME/bin:$PATH
 export ANT_HOME=$DEV_ENV_BUNDLES_BASE/apache-ant/default
 export PATH=$ANT_HOME/bin:$PATH
 
-# Bin dir
+## Bin dir
 DEV_ENV_BINDIR=$DEV_ENV_BASE/bin/$PLATFORM-$ARCH
 export PATH=$DEV_ENV_BINDIR:$PATH
 
-# Aliases
+## Modules
+
+# goenv
+export GOENV_ROOT="$DEV_ENV_MODULES_BASE/goenv"
+export PATH="$GOENV_ROOT/bin:$PATH"
+eval "$(goenv init -)"
+
+## Aliases
 alias k=kubectl
 alias kcc=kubectx
 alias kns=kubens

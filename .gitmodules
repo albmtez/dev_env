@@ -1,0 +1,3 @@
+[submodule "modules/goenv"]
+	path = modules/goenv
+	url = https://github.com/syndbg/goenv
