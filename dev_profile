@@ -64,6 +64,9 @@ export NVM_DIR="$DEV_ENV_MODULES_BASE/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
+# rbenv
+eval "$($DEV_ENV_MODULES_BASE/rbenv/bin/rbenv init - zsh)"
+
 ## Aliases
 alias k=kubectl
 alias kcc=kubectx
