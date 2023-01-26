@@ -27,6 +27,8 @@ function usage {
     echo "  yq             - yq"
     echo "  conftest       - conftest"
     echo "  kubeconform    - kubeconform"
+    echo "  oc             - Openshift v4 CLI"
+    echo "  gh             - GitHub CLI"
 }
 
 function git_install {
@@ -555,7 +557,6 @@ function kubeconform_install {
     mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
     cd ${tmpDir}
     echo "Downloading latest kubeconform version: ${latest}"
-echo "https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz"
     wget --quiet --continue --show-progress https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz
     tar xzvf kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz
 
@@ -569,9 +570,85 @@ echo "https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconfo
     [[ ! -d $BINDIR/$PLATFORM-${kubeconform_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubeconform_arch}
     [[ ! -f $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform ]] && ln -s $BUNDLESDIR/kubeconform/default-$PLATFORM-${kubeconform_arch} $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform
 
-    unset platform_package
     unset tmpDir
     unset kubeconform_arch
+    unset latest
+}
+
+function oc_install {
+    echo "Openshift CLI install"
+
+    # Arch x86_64 used in package names
+    oc_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && oc_arch='amd64'
+
+    # Download oc
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest oc version"
+    wget --quiet --continue --show-progress https://mirror.openshift.com/pub/openshift-v4/${oc_arch}/clients/oc/latest/${PLATFORM}/oc.tar.gz
+    tar xzvf oc.tar.gz
+    latest=$($tmpDir/oc version | grep "Client Version:" | awk '{ print $3 }')
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/oc/oc-${latest}-$PLATFORM-${oc_arch}* ] && echo "oc version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/oc ]] && mkdir -p $BUNDLESDIR/oc
+
+    mv oc oc-${latest}-$PLATFORM-${oc_arch}
+    tar cvzf $BUNDLESDIR/oc/oc-${latest}-$PLATFORM-${oc_arch}.tar.gz oc-${latest}-$PLATFORM-${oc_arch}
+    # mv oc-${latest}-$PLATFORM-${oc_arch} $BUNDLESDIR/oc
+
+    # Set the default version
+    rm -f $BUNDLESDIR/oc/default-$PLATFORM-${oc_arch}
+    ln -s oc-$latest-$PLATFORM-${oc_arch} $BUNDLESDIR/oc/default-$PLATFORM-${oc_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${oc_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${oc_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${oc_arch}/oc ]] && ln -s $BUNDLESDIR/oc/default-$PLATFORM-${oc_arch} $BINDIR/$PLATFORM-${oc_arch}/oc
+
+    unset tmpDir
+    unset oc_arch
+    unset latest
+}
+
+function gh_install {
+    echo "GitHub CLI install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    latest_filename=$(echo $latest | awk -Fv '{ print $2 }')
+
+    # Arch x86_64 used in package names
+    gh_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && gh_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/gh/gh-${latest}-$PLATFORM-${gh_arch} ] && echo "gh version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/gh ]] && mkdir -p $BUNDLESDIR/gh
+
+    # Download gh
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest gh version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/cli/cli/releases/download/${latest}/gh_${latest_filename}_${PLATFORM}_${gh_arch}.tar.gz
+    tar xzvf gh_${latest_filename}_${PLATFORM}_${gh_arch}.tar.gz
+
+    mv gh_${latest_filename}_${PLATFORM}_${gh_arch}/bin/gh $BUNDLESDIR/gh/gh-${latest}-$PLATFORM-${gh_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/gh/default-$PLATFORM-${gh_arch}
+    ln -s gh-$latest-$PLATFORM-${gh_arch} $BUNDLESDIR/gh/default-$PLATFORM-${gh_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${gh_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${gh_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${gh_arch}/gh ]] && ln -s $BUNDLESDIR/gh/default-$PLATFORM-${gh_arch} $BINDIR/$PLATFORM-${gh_arch}/gh
+
+    unset tmpDir
+    unset gh_arch
     unset latest
 }
 
@@ -645,6 +722,12 @@ case "$1" in
     "kubeconform")
         kubeconform_install
         ;;
+    "oc")
+        oc_install
+        ;;
+    "gh")
+        gh_install
+        ;;
     "all")
         git_install
         maven_install
@@ -662,6 +745,8 @@ case "$1" in
         yq_install
         conftest_install
         kubeconform_install
+        oc_install
+        gh_intall
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
