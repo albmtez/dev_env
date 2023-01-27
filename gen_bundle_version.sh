@@ -154,7 +154,7 @@ function docker_compose_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${docker_compose_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${docker_compose_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${docker_compose_arch}/docker-compose ]] && ln -s $BUNDLESDIR/docker-compose/default-$PLATFORM-${docker_compose_arch} $BINDIR/$PLATFORM-${docker_compose_arch}/docker-compose
+    [[ ! -f $BINDIR/$PLATFORM-${docker_compose_arch}/docker-compose ]] && ln -s ../../bundles/docker-compose/default-$PLATFORM-${docker_compose_arch} $BINDIR/$PLATFORM-${docker_compose_arch}/docker-compose
 
     unset docker_compose_arch
     unset latest
@@ -185,7 +185,7 @@ function minikube_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${minikube_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${minikube_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${minikube_arch}/minikube ]] && ln -s $BUNDLESDIR/minikube/default-$PLATFORM-${minikube_arch} $BINDIR/$PLATFORM-${minikube_arch}/minikube
+    [[ ! -f $BINDIR/$PLATFORM-${minikube_arch}/minikube ]] && ln -s ../../bundles/minikube/default-$PLATFORM-${minikube_arch} $BINDIR/$PLATFORM-${minikube_arch}/minikube
 
     unset minikube_arch
     unset latest
@@ -217,7 +217,7 @@ function kubectl_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubectl_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubectl_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubectl_arch}/kubectl ]] && ln -s $BUNDLESDIR/kubectl/default-$PLATFORM-${kubectl_arch} $BINDIR/$PLATFORM-${kubectl_arch}/kubectl
+    [[ ! -f $BINDIR/$PLATFORM-${kubectl_arch}/kubectl ]] && ln -s ../../bundles/kubectl/default-$PLATFORM-${kubectl_arch} $BINDIR/$PLATFORM-${kubectl_arch}/kubectl
 
     unset kubectl_arch
     unset latest
@@ -253,7 +253,7 @@ function kubectx_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubectx_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubectx_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubectx_arch}/kubectx ]] && ln -s $BUNDLESDIR/kubectx/default-$PLATFORM-${kubectx_arch} $BINDIR/$PLATFORM-${kubectx_arch}/kubectx
+    [[ ! -f $BINDIR/$PLATFORM-${kubectx_arch}/kubectx ]] && ln -s ../../bundles/kubectx/default-$PLATFORM-${kubectx_arch} $BINDIR/$PLATFORM-${kubectx_arch}/kubectx
 
     unset tmpDir
     unset kubectx_arch
@@ -290,7 +290,7 @@ function kubens_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubens_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubens_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubens_arch}/kubens ]] && ln -s $BUNDLESDIR/kubens/default-$PLATFORM-${kubens_arch} $BINDIR/$PLATFORM-${kubens_arch}/kubens
+    [[ ! -f $BINDIR/$PLATFORM-${kubens_arch}/kubens ]] && ln -s ../../bundles/kubens/default-$PLATFORM-${kubens_arch} $BINDIR/$PLATFORM-${kubens_arch}/kubens
 
     unset tmpDir
     unset kubens_arch
@@ -326,7 +326,7 @@ function k3sup_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${k3sup_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${k3sup_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${k3sup_arch}/k3sup ]] && ln -s $BUNDLESDIR/k3sup/default-$PLATFORM-${k3sup_arch} $BINDIR/$PLATFORM-${k3sup_arch}/k3sup
+    [[ ! -f $BINDIR/$PLATFORM-${k3sup_arch}/k3sup ]] && ln -s ../../bundles/k3sup/default-$PLATFORM-${k3sup_arch} $BINDIR/$PLATFORM-${k3sup_arch}/k3sup
 
     unset k3sup_bin_name
     unset k3sup_dest_name
@@ -359,7 +359,7 @@ function k3d_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${k3d_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${k3d_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${k3d_arch}/k3d ]] && ln -s $BUNDLESDIR/k3d/default-$PLATFORM-${k3d_arch} $BINDIR/$PLATFORM-${k3d_arch}/k3d
+    [[ ! -f $BINDIR/$PLATFORM-${k3d_arch}/k3d ]] && ln -s ../../bundles/k3d/default-$PLATFORM-${k3d_arch} $BINDIR/$PLATFORM-${k3d_arch}/k3d
 
     unset k3d_arch
     unset latest
@@ -390,7 +390,7 @@ function kind_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kind_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kind_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kind_arch}/kind ]] && ln -s $BUNDLESDIR/kind/default-$PLATFORM-${kind_arch} $BINDIR/$PLATFORM-${kind_arch}/kind
+    [[ ! -f $BINDIR/$PLATFORM-${kind_arch}/kind ]] && ln -s ../../bundles/kind/default-$PLATFORM-${kind_arch} $BINDIR/$PLATFORM-${kind_arch}/kind
 
     unset kind_arch
     unset latest
@@ -400,7 +400,7 @@ function knative_install {
     echo "Knative install"
 
     # Find latest version
-    latest=$(curl -s https://api.github.com/repos/knative/client/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    latest=$(curl -s https://api.github.com/repos/knative/client/releases/latest | grep 'tag_name' | cut -d\" -f4 | awk -F- '{ print $2 }')
 
     # Arch x86_64 replaced by amd64
     kn_arch=$ARCH
@@ -412,7 +412,7 @@ function knative_install {
 
     # Download Knative
     echo "Installing kn version ${latest}"    
-    curl -L "https://github.com/knative/client/releases/download/${latest}/kn-$PLATFORM-${kn_arch}" -o $BUNDLESDIR/knative/kn-${latest}-$PLATFORM-${kn_arch}
+    curl -L "https://github.com/knative/client/releases/download/knative-${latest}/kn-$PLATFORM-${kn_arch}" -o $BUNDLESDIR/knative/kn-${latest}-$PLATFORM-${kn_arch}
     chmod +x $BUNDLESDIR/knative/kn-${latest}-$PLATFORM-$kn_arch
 
     # Set the default version
@@ -421,7 +421,7 @@ function knative_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kn_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kn_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kn_arch}/kn ]] && ln -s $BUNDLESDIR/knative/default-$PLATFORM-${kn_arch} $BINDIR/$PLATFORM-${kn_arch}/kn
+    [[ ! -f $BINDIR/$PLATFORM-${kn_arch}/kn ]] && ln -s ../../bundles/knative/default-$PLATFORM-${kn_arch} $BINDIR/$PLATFORM-${kn_arch}/kn
 
     unset kn_arch
     unset latest
@@ -458,7 +458,7 @@ function terraform_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${terraform_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${terraform_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${terraform_arch}/terraform ]] && ln -s $BUNDLESDIR/terraform/default-$PLATFORM-${terraform_arch} $BINDIR/$PLATFORM-${terraform_arch}/terraform
+    [[ ! -f $BINDIR/$PLATFORM-${terraform_arch}/terraform ]] && ln -s ../../bundles/terraform/default-$PLATFORM-${terraform_arch} $BINDIR/$PLATFORM-${terraform_arch}/terraform
 
     unset tmpDir
     unset terraform_arch
@@ -490,7 +490,7 @@ function yq_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${yq_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${yq_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${yq_arch}/yq ]] && ln -s $BUNDLESDIR/yq/default-$PLATFORM-${yq_arch} $BINDIR/$PLATFORM-${yq_arch}/yq
+    [[ ! -f $BINDIR/$PLATFORM-${yq_arch}/yq ]] && ln -s ../../bundles/yq/default-$PLATFORM-${yq_arch} $BINDIR/$PLATFORM-${yq_arch}/yq
 
     unset yq_arch
     unset latest
@@ -529,7 +529,7 @@ function conftest_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${conftest_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${conftest_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${conftest_arch}/conftest ]] && ln -s $BUNDLESDIR/conftest/default-$PLATFORM-${conftest_arch} $BINDIR/$PLATFORM-${conftest_arch}/conftest
+    [[ ! -f $BINDIR/$PLATFORM-${conftest_arch}/conftest ]] && ln -s ../../bundles/conftest/default-$PLATFORM-${conftest_arch} $BINDIR/$PLATFORM-${conftest_arch}/conftest
 
     unset platform_package
     unset tmpDir
@@ -568,7 +568,7 @@ function kubeconform_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubeconform_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubeconform_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform ]] && ln -s $BUNDLESDIR/kubeconform/default-$PLATFORM-${kubeconform_arch} $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform
+    [[ ! -f $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform ]] && ln -s ../../bundles/kubeconform/default-$PLATFORM-${kubeconform_arch} $BINDIR/$PLATFORM-${kubeconform_arch}/kubeconform
 
     unset tmpDir
     unset kubeconform_arch
@@ -606,7 +606,7 @@ function oc_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${oc_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${oc_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${oc_arch}/oc ]] && ln -s $BUNDLESDIR/oc/default-$PLATFORM-${oc_arch} $BINDIR/$PLATFORM-${oc_arch}/oc
+    [[ ! -f $BINDIR/$PLATFORM-${oc_arch}/oc ]] && ln -s ../../bundles/oc/default-$PLATFORM-${oc_arch} $BINDIR/$PLATFORM-${oc_arch}/oc
 
     unset tmpDir
     unset oc_arch
@@ -645,7 +645,7 @@ function gh_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${gh_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${gh_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${gh_arch}/gh ]] && ln -s $BUNDLESDIR/gh/default-$PLATFORM-${gh_arch} $BINDIR/$PLATFORM-${gh_arch}/gh
+    [[ ! -f $BINDIR/$PLATFORM-${gh_arch}/gh ]] && ln -s ../../bundles/gh/default-$PLATFORM-${gh_arch} $BINDIR/$PLATFORM-${gh_arch}/gh
 
     unset tmpDir
     unset gh_arch
