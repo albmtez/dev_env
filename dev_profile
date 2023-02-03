@@ -75,3 +75,7 @@ export PATH=$DEV_ENV_MODULES_BASE/ruby-build/bin:$PATH
 alias k=kubectl
 alias kcc=kubectx
 alias kns=kubens
+
+# oc autocompletion
+# the oc oh-my-zsh plugin doesn't work fine
+source <(oc completion zsh)
