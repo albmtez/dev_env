@@ -30,6 +30,7 @@ function usage {
     echo "  oc             - Openshift v4 CLI"
     echo "  gh             - GitHub CLI"
     echo "  operator-sdk   - Operator SDK"
+    echo "  kustomize      - Kustomize"
 }
 
 function git_install {
@@ -692,6 +693,44 @@ function operator-sdk_install {
     unset latest
 }
 
+function kustomize_install {
+    echo "Kustomize install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | grep 'kustomize' | grep 'tag_name' | cut -d\" -f4 | cut -d'/' -f2)
+
+    # Arch x86_64 used in package names
+    kustomize_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && kustomize_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/kustomize/kustomize-${latest}-$PLATFORM-${kustomize_arch} ] && echo "kustomize version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/kustomize ]] && mkdir -p $BUNDLESDIR/kustomize
+
+    # Download kustomize
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest kustomize version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${latest}/kustomize_${latest}_${PLATFORM}_${kustomize_arch}.tar.gz
+    tar xzvf kustomize_${latest}_${PLATFORM}_${kustomize_arch}.tar.gz
+
+    mv kustomize $BUNDLESDIR/kustomize/kustomize-${latest}-$PLATFORM-${kustomize_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/kustomize/default-$PLATFORM-${kustomize_arch}
+    ln -s kustomize-$latest-$PLATFORM-${kustomize_arch} $BUNDLESDIR/kustomize/default-$PLATFORM-${kustomize_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${kustomize_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kustomize_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${kustomize_arch}/kustomize ]] && ln -s ../../bundles/kustomize/default-$PLATFORM-${kustomize_arch} $BINDIR/$PLATFORM-${kustomize_arch}/kustomize
+
+    unset tmpDir
+    unset kustomize_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -771,6 +810,9 @@ case "$1" in
     "operator-sdk")
         operator-sdk_install
         ;;
+    "kustomize")
+        kustomize_install
+        ;;
     "all")
         git_install
         maven_install
@@ -791,6 +833,7 @@ case "$1" in
         oc_install
         gh_intall
         operator-sdk_install
+        kustomize_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
