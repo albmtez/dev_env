@@ -29,6 +29,7 @@ function usage {
     echo "  kubeconform    - kubeconform"
     echo "  oc             - Openshift v4 CLI"
     echo "  gh             - GitHub CLI"
+    echo "  operator-sdk   - Operator SDK"
 }
 
 function git_install {
@@ -652,6 +653,45 @@ function gh_install {
     unset latest
 }
 
+function operator-sdk_install {
+    echo "Operator SDK install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/operator-framework/operator-sdk/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    latest_filename=$(echo $latest | awk -Fv '{ print $2 }')
+
+    # Arch x86_64 used in package names
+    operatorsdk_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && operatorsdk_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/operator-sdk/operator-sdk-${latest}-$PLATFORM-${operatorsdk_arch} ] && echo "Operator SDK version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/operator-sdk ]] && mkdir -p $BUNDLESDIR/operator-sdk
+
+    # Download Operator SDK
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest Operator SDK version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/operator-framework/operator-sdk/releases/download/${latest}/operator-sdk_${PLATFORM}_${operatorsdk_arch}
+    chmod +x operator-sdk_${PLATFORM}_${operatorsdk_arch}
+
+    mv operator-sdk_${PLATFORM}_${operatorsdk_arch} $BUNDLESDIR/operator-sdk/operator-sdk-${latest}-$PLATFORM-${operatorsdk_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/operator-sdk/default-$PLATFORM-${operatorsdk_arch}
+    ln -s operator-sdk-$latest-$PLATFORM-${operatorsdk_arch} $BUNDLESDIR/operator-sdk/default-$PLATFORM-${operatorsdk_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${operatorsdk_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${operatorsdk_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${operatorsdk_arch}/operator-sdk ]] && ln -s ../../bundles/operator-sdk/default-$PLATFORM-${operatorsdk_arch} $BINDIR/$PLATFORM-${operatorsdk_arch}/operator-sdk
+
+    unset tmpDir
+    unset operatorsdk_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -728,6 +768,9 @@ case "$1" in
     "gh")
         gh_install
         ;;
+    "operator-sdk")
+        operator-sdk_install
+        ;;
     "all")
         git_install
         maven_install
@@ -747,6 +790,7 @@ case "$1" in
         kubeconform_install
         oc_install
         gh_intall
+        operator-sdk_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
