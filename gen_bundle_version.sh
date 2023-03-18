@@ -31,6 +31,7 @@ function usage {
     echo "  gh             - GitHub CLI"
     echo "  operator-sdk   - Operator SDK"
     echo "  kustomize      - Kustomize"
+    echo "  kubelogin      - Azure Kubelogin"
 }
 
 function git_install {
@@ -731,6 +732,46 @@ function kustomize_install {
     unset latest
 }
 
+function kubelogin_install {
+    echo "Azure Kubelogin install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/Azure/kubelogin/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    kubelogin_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && kubelogin_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch} ] && echo "kubelogin version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/kubelogin ]] && mkdir -p $BUNDLESDIR/kubelogin
+
+    # Download kubelogin
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest kubelogin version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/Azure/kubelogin/releases/download/${latest}/kubelogin-$PLATFORM-${kubelogin_arch}.zip
+    unzip kubelogin-$PLATFORM-${kubelogin_arch}.zip
+
+    chmod 700 bin/linux_amd64/kubelogin
+    mv bin/linux_amd64/kubelogin $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch}
+    
+
+    # Set the default version
+    rm -f $BUNDLESDIR/kubelogin/default-$PLATFORM-${kubelogin_arch}
+    ln -s kubelogin-$latest-$PLATFORM-${kubelogin_arch} $BUNDLESDIR/kubelogin/default-$PLATFORM-${kubelogin_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${kubelogin_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubelogin_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${kubelogin_arch}/kubelogin ]] && ln -s ../../bundles/kubelogin/default-$PLATFORM-${kubelogin_arch} $BINDIR/$PLATFORM-${kubelogin_arch}/kubelogin
+
+    unset tmpDir
+    unset kubelogin_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -813,6 +854,9 @@ case "$1" in
     "kustomize")
         kustomize_install
         ;;
+    "kubelogin")
+        kubelogin_install
+        ;;
     "all")
         git_install
         maven_install
@@ -834,6 +878,7 @@ case "$1" in
         gh_intall
         operator-sdk_install
         kustomize_install
+        kubelogin_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
