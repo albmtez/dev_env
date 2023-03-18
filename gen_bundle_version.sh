@@ -32,6 +32,7 @@ function usage {
     echo "  operator-sdk   - Operator SDK"
     echo "  kustomize      - Kustomize"
     echo "  kubelogin      - Azure Kubelogin"
+    echo "  helm           - Helm"
 }
 
 function git_install {
@@ -756,7 +757,7 @@ function kubelogin_install {
     unzip kubelogin-$PLATFORM-${kubelogin_arch}.zip
 
     chmod 700 bin/linux_amd64/kubelogin
-    mv bin/linux_amd64/kubelogin $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch}
+    mv bin/$PLATFORM_${kubelogin_arch}/kubelogin $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch}
     
 
     # Set the default version
@@ -766,6 +767,44 @@ function kubelogin_install {
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubelogin_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubelogin_arch}
     [[ ! -f $BINDIR/$PLATFORM-${kubelogin_arch}/kubelogin ]] && ln -s ../../bundles/kubelogin/default-$PLATFORM-${kubelogin_arch} $BINDIR/$PLATFORM-${kubelogin_arch}/kubelogin
+
+    unset tmpDir
+    unset kubelogin_arch
+    unset latest
+}
+
+function helm_install {
+    echo "Helm install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/helm/helm/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    helm_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && helm_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${helm_arch} ] && echo "Helm version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/helm ]] && mkdir -p $BUNDLESDIR/helm
+
+    # Download Helm
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest helm version: ${latest}"
+    wget --quiet --continue --show-progress https://get.helm.sh/helm-${latest}-$PLATFORM-${helm_arch}.tar.gz
+    tar xzvf helm-${latest}-$PLATFORM-${helm_arch}.tar.gz
+
+    mv $PLATFORM-${helm_arch}/helm $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${kubelogin_arch}
+    
+    # Set the default version
+    rm -f $BUNDLESDIR/helm/default-$PLATFORM-${helm_arch}
+    ln -s helm-$latest-$PLATFORM-${helm_arch} $BUNDLESDIR/helm/default-$PLATFORM-${helm_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${helm_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${helm_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${helm_arch}/helm ]] && ln -s ../../bundles/helm/default-$PLATFORM-${helm_arch} $BINDIR/$PLATFORM-${helm_arch}/helm
 
     unset tmpDir
     unset kubelogin_arch
@@ -857,6 +896,9 @@ case "$1" in
     "kubelogin")
         kubelogin_install
         ;;
+    "helm")
+        helm_install
+        ;;
     "all")
         git_install
         maven_install
@@ -879,6 +921,7 @@ case "$1" in
         operator-sdk_install
         kustomize_install
         kubelogin_install
+        helm_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
