@@ -796,7 +796,7 @@ function helm_install {
     wget --quiet --continue --show-progress https://get.helm.sh/helm-${latest}-$PLATFORM-${helm_arch}.tar.gz
     tar xzvf helm-${latest}-$PLATFORM-${helm_arch}.tar.gz
 
-    mv $PLATFORM-${helm_arch}/helm $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${kubelogin_arch}
+    mv $PLATFORM-${helm_arch}/helm $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${helm_arch}
     
     # Set the default version
     rm -f $BUNDLESDIR/helm/default-$PLATFORM-${helm_arch}
