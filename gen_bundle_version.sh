@@ -756,8 +756,8 @@ function kubelogin_install {
     wget --quiet --continue --show-progress https://github.com/Azure/kubelogin/releases/download/${latest}/kubelogin-$PLATFORM-${kubelogin_arch}.zip
     unzip kubelogin-$PLATFORM-${kubelogin_arch}.zip
 
-    chmod 700 bin/linux_amd64/kubelogin
-    mv bin/$PLATFORM_${kubelogin_arch}/kubelogin $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch}
+    chmod 700 bin/${PLATFORM}_${kubelogin_arch}/kubelogin
+    mv bin/${PLATFORM}_${kubelogin_arch}/kubelogin $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch}
     
 
     # Set the default version
