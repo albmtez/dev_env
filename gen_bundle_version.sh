@@ -33,6 +33,7 @@ function usage {
     echo "  kustomize      - Kustomize"
     echo "  kubelogin      - Azure Kubelogin"
     echo "  helm           - Helm"
+    echo "  k9s            - K9s"
 }
 
 function git_install {
@@ -811,6 +812,45 @@ function helm_install {
     unset latest
 }
 
+function k9s_install {
+    echo "K9s install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    k9s_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && k9s_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/k9s/k9s-${latest}-$PLATFORM-${k9s_arch} ] && echo "k9s version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/k9s ]] && mkdir -p $BUNDLESDIR/k9s
+
+    # Download k9s
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest k9s version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/derailed/k9s/releases/download/${latest}/k9s_${PLATFORM}_${k9s_arch}.tar.gz
+    tar xzvf k9s_${PLATFORM}_${k9s_arch}.tar.gz
+
+    # chmod 700 bin/${PLATFORM}_${k9s_arch}/k9s
+    mv k9s $BUNDLESDIR/k9s/k9s-${latest}-$PLATFORM-${k9s_arch}
+    
+    # Set the default version
+    rm -f $BUNDLESDIR/k9s/default-$PLATFORM-${k9s_arch}
+    ln -s k9s-$latest-$PLATFORM-${k9s_arch} $BUNDLESDIR/k9s/default-$PLATFORM-${k9s_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${k9s_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${k9s_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${k9s_arch}/k9s ]] && ln -s ../../bundles/k9s/default-$PLATFORM-${k9s_arch} $BINDIR/$PLATFORM-${k9s_arch}/k9s
+
+    unset tmpDir
+    unset k9s_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -899,6 +939,9 @@ case "$1" in
     "helm")
         helm_install
         ;;
+    "k9s")
+        k9s_install
+        ;;
     "all")
         git_install
         maven_install
@@ -922,6 +965,7 @@ case "$1" in
         kustomize_install
         kubelogin_install
         helm_install
+        k9s_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
