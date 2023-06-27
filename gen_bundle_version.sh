@@ -959,7 +959,7 @@ case "$1" in
         conftest_install
         kubeconform_install
         oc_install
-        gh_intall
+        gh_install
         operator-sdk_install
         kustomize_install
         kubelogin_install
