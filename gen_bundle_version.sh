@@ -602,8 +602,7 @@ function oc_install {
     [[ ! -d $BUNDLESDIR/oc ]] && mkdir -p $BUNDLESDIR/oc
 
     mv oc oc-${latest}-$PLATFORM-${oc_arch}
-    tar cvzf $BUNDLESDIR/oc/oc-${latest}-$PLATFORM-${oc_arch}.tar.gz oc-${latest}-$PLATFORM-${oc_arch}
-    # mv oc-${latest}-$PLATFORM-${oc_arch} $BUNDLESDIR/oc
+    mv oc-${latest}-$PLATFORM-${oc_arch} $BUNDLESDIR/oc
 
     # Set the default version
     rm -f $BUNDLESDIR/oc/default-$PLATFORM-${oc_arch}
