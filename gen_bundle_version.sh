@@ -34,6 +34,7 @@ function usage {
     echo "  kubelogin      - Azure Kubelogin"
     echo "  helm           - Helm"
     echo "  k9s            - K9s"
+    echo "  redis-cli      - redis-cli"
 }
 
 function git_install {
@@ -834,7 +835,6 @@ function k9s_install {
     wget --quiet --continue --show-progress https://github.com/derailed/k9s/releases/download/${latest}/k9s_${PLATFORM}_${k9s_arch}.tar.gz
     tar xzvf k9s_${PLATFORM}_${k9s_arch}.tar.gz
 
-    # chmod 700 bin/${PLATFORM}_${k9s_arch}/k9s
     mv k9s $BUNDLESDIR/k9s/k9s-${latest}-$PLATFORM-${k9s_arch}
     
     # Set the default version
@@ -848,6 +848,47 @@ function k9s_install {
     unset tmpDir
     unset k9s_arch
     unset latest
+}
+
+function redis-cli_install {
+    echo "redis-cli bundle generation"
+
+    # Recreate tmp working dir
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd $tmpDir
+
+    # Clone git repo and choose the latest released version
+    git clone https://github.com/redis/redis.git
+    cd redis
+    git fetch --tags
+    tag=$(git tag -l --sort=-v:refname | grep -oP '^[0-9\.]+$' | head -n 1)
+
+    # Arch x86_64 is replaced by amd64
+    rediscli_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && rediscli_arch='amd64'
+
+    # Check if already installed
+    [ -d $BUNDLESDIR/redis-cli/redis-cli-$tag-$PLATFORM-$rediscli_arch ] && echo "redis-cli version ${tag} already installed!" && rm -rf $tmpDir && unset tmpDir && exit 1
+    [[ ! -d $BUNDLESDIR/redis-cli ]] && mkdir -p $BUNDLESDIR/redis-cli
+
+    # Configure, build and install
+    git checkout $tag -b version-to-install
+    make redis-cli
+
+    mv src/redis-cli $BUNDLESDIR/redis-cli/redis-cli-${tag}-$PLATFORM-${rediscli_arch}
+
+    # Set the default version
+    rm -f $BUNDLESDIR/redis-cli/default-$PLATFORM-$rediscli_arch
+    ln -s redis-cli-$tag-$PLATFORM-$rediscli_arch $BUNDLESDIR/redis-cli/default-$PLATFORM-$rediscli_arch
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${rediscli_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${rediscli_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${rediscli_arch}/redis-cli ]] && ln -s ../../bundles/redis-cli/default-$PLATFORM-${rediscli_arch} $BINDIR/$PLATFORM-${rediscli_arch}/redis-cli
+
+    unset rediscli_arch
+    unset tmpDir
 }
 
 # Determine OS platform
@@ -941,6 +982,9 @@ case "$1" in
     "k9s")
         k9s_install
         ;;
+    "redis-cli")
+        redis-cli_install
+        ;;
     "all")
         git_install
         maven_install
@@ -965,6 +1009,7 @@ case "$1" in
         kubelogin_install
         helm_install
         k9s_install
+        redis-cli_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
