@@ -35,6 +35,7 @@ function usage {
     echo "  helm           - Helm"
     echo "  k9s            - K9s"
     echo "  redis-cli      - redis-cli"
+    echo "  velero         - velero"
 }
 
 function git_install {
@@ -891,6 +892,44 @@ function redis-cli_install {
     unset tmpDir
 }
 
+function velero_install {
+    echo "Velero install"
+
+    # Find latest version
+    latest=$(curl -s curl -s https://api.github.com/repos/vmware-tanzu/velero/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    velero_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && velero_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/velero/velero-${latest}-$PLATFORM-${velero_arch} ] && echo "velero version ${latest} already installed!" && exit 0
+    [[ ! -d $BUNDLESDIR/velero ]] && mkdir -p $BUNDLESDIR/velero
+
+    # Download velero
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    cd ${tmpDir}
+    echo "Downloading latest velero version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/vmware-tanzu/velero/releases/download/${latest}/velero-${latest}-${PLATFORM}-${velero_arch}.tar.gz
+    tar xzvf velero-${latest}-${PLATFORM}-${velero_arch}.tar.gz
+
+    mv velero-${latest}-$PLATFORM-${velero_arch}/velero $BUNDLESDIR/velero/velero-${latest}-$PLATFORM-${velero_arch}
+    
+    # Set the default version
+    rm -f $BUNDLESDIR/velero/default-$PLATFORM-${velero_arch}
+    ln -s velero-$latest-$PLATFORM-${velero_arch} $BUNDLESDIR/velero/default-$PLATFORM-${velero_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${velero_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${velero_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${velero_arch}/velero ]] && ln -s ../../bundles/velero/default-$PLATFORM-${velero_arch} $BINDIR/$PLATFORM-${velero_arch}/velero
+
+    unset tmpDir
+    unset velero_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -985,6 +1024,9 @@ case "$1" in
     "redis-cli")
         redis-cli_install
         ;;
+    "velero")
+        velero_install
+        ;;
     "all")
         git_install
         maven_install
@@ -1010,6 +1052,7 @@ case "$1" in
         helm_install
         k9s_install
         redis-cli_install
+        velero_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
