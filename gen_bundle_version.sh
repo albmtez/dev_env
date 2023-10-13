@@ -43,8 +43,8 @@ function git_install {
 
     # Recreate tmp working dir
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd $tmpDir
 
     # Clone git repo and choose the latest released version
@@ -58,7 +58,7 @@ function git_install {
     [ $ARCH = 'x86_64' ] && git_arch='amd64'
 
     # Check if already installed
-    [ -d $BUNDLESDIR/git/git-$tag-$PLATFORM-$git_arch ] && echo "Git version ${tag} already installed!" && rm -rf $tmpDir && unset tmpDir && exit 1
+    [ -d $BUNDLESDIR/git/git-$tag-$PLATFORM-$git_arch ] && echo "Git version ${tag} already installed!" && rm -rf $tmpDir && unset tmpDir && return
     [[ ! -d $BUNDLESDIR/git ]] && mkdir -p $BUNDLESDIR/git
 
     # Configure, build and install
@@ -86,13 +86,13 @@ function maven_install {
     latest="$(wget -qO- https://dlcdn.apache.org/maven/maven-3/ | grep -oP '[0-9\.]+/<' | grep -oP '[0-9\.]+' | tail -n 1)"
 
     # Check if already installed
-    [ -d $BUNDLESDIR/apache-maven/apache-maven-"${latest}" ] && echo "Apache Maven version ${latest} already installed!" && exit 0
+    [ -d $BUNDLESDIR/apache-maven/apache-maven-"${latest}" ] && echo "Apache Maven version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/apache-maven ]] && mkdir -p $BUNDLESDIR/apache-maven
 
     # Download Apache Maven
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest Apache Maven: ${latest}"
     wget --quiet --continue --show-progress https://dlcdn.apache.org/maven/maven-3/"${latest}"/binaries/apache-maven-"${latest}"-bin.tar.gz
@@ -115,13 +115,13 @@ function ant_install {
     latest="$(wget -qO- http://apache.uvigo.es//ant/binaries/ | grep -oP 'apache-ant-([0-9\.]+)-bin.tar.gz<' | grep -oP 'ant-[0-9\.]+' | grep -oP '[0-9\.]+' | sort --version-sort | tail -n 1)"
 
     # Check if already installed
-    [ -d $BUNDLESDIR/apache-ant/apache-ant-"${latest}" ] && echo "Apache Ant version ${latest} already installed!" && exit 0
+    [ -d $BUNDLESDIR/apache-ant/apache-ant-"${latest}" ] && echo "Apache Ant version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/apache-ant ]] && mkdir -p $BUNDLESDIR/apache-ant
 
     # Download Apache Ant
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest Apache Ant: ${latest}"
     wget --quiet --continue --show-progress http://apache.uvigo.es//ant/binaries/apache-ant-"${latest}"-bin.tar.gz
@@ -147,7 +147,7 @@ function docker_compose_install {
     [ $ARCH = 'x86_64' ] && docker_compose_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/docker-compose/docker-compose-${latest}-$PLATFORM-${docker_compose_arch} ] && echo "Docker compose version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/docker-compose/docker-compose-${latest}-$PLATFORM-${docker_compose_arch} ] && echo "Docker compose version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/docker-compose ]] && mkdir -p $BUNDLESDIR/docker-compose
 
     # Download docker compose
@@ -178,7 +178,7 @@ function minikube_install {
     [ $ARCH = 'x86_64' ] && minikube_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/minikube/minikube-${latest}-$PLATFORM-${minikube_arch} ] && echo "Minikube version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/minikube/minikube-${latest}-$PLATFORM-${minikube_arch} ] && echo "Minikube version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/minikube ]] && mkdir -p $BUNDLESDIR/minikube
 
     # Download minikube
@@ -210,7 +210,7 @@ function kubectl_install {
     [ $ARCH == 'x86_64' ] && kubectl_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kubectl/kubectl-${latest}-$PLATFORM-${kubectl_arch} ] && echo "Kubectl version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kubectl/kubectl-${latest}-$PLATFORM-${kubectl_arch} ] && echo "Kubectl version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kubectl ]] && mkdir -p $BUNDLESDIR/kubectl
 
     # Download kubectl
@@ -241,13 +241,13 @@ function kubectx_install {
     [ $ARCH = 'x86_64' ] && kubectx_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kubectx/kubectx-${latest}-$PLATFORM-${kubectx_arch} ] && echo "Kubectx version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kubectx/kubectx-${latest}-$PLATFORM-${kubectx_arch} ] && echo "Kubectx version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kubectx ]] && mkdir -p $BUNDLESDIR/kubectx
 
     # Download kubectx
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Installing kubectx version ${latest}"
     wget "https://github.com/ahmetb/kubectx/releases/download/${latest}/kubectx_${latest}_${PLATFORM}_$ARCH.tar.gz"
@@ -278,13 +278,13 @@ function kubens_install {
     [ $ARCH = 'x86_64' ] && kubens_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kubens/kubens-${latest}-$PLATFORM-${kubens_arch} ] && echo "kubens version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kubens/kubens-${latest}-$PLATFORM-${kubens_arch} ] && echo "kubens version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kubens ]] && mkdir -p $BUNDLESDIR/kubens
 
     # Download kubens
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Installing kubens version ${latest}"
     wget "https://github.com/ahmetb/kubectx/releases/download/${latest}/kubens_${latest}_${PLATFORM}_$ARCH.tar.gz"
@@ -319,7 +319,7 @@ function k3sup_install {
     k3sup_dest_name=k3sup-v${latest}-$PLATFORM-${k3sup_arch}
 
     # Check if already installed
-    [ -f $BUNDLESDIR/k3sup/${k3sup_dest_name} ] && echo "V3sup version v${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/k3sup/${k3sup_dest_name} ] && echo "V3sup version v${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/k3sup ]] && mkdir -p $BUNDLESDIR/k3sup
 
     # Download kubectl
@@ -352,7 +352,7 @@ function k3d_install {
     [ $ARCH = 'x86_64' ] && k3d_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/k3d/k3d-${latest}-$PLATFORM-${k3d_arch} ] && echo "K3d version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/k3d/k3d-${latest}-$PLATFORM-${k3d_arch} ] && echo "K3d version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/k3d ]] && mkdir -p $BUNDLESDIR/k3d
 
     # Download k3d
@@ -383,7 +383,7 @@ function kind_install {
     [ $ARCH = 'x86_64' ] && kind_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kind/kind-${latest}-$PLATFORM-${kind_arch} ] && echo "Kind version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kind/kind-${latest}-$PLATFORM-${kind_arch} ] && echo "Kind version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kind ]] && mkdir -p $BUNDLESDIR/kind
 
     # Download kind
@@ -414,7 +414,7 @@ function knative_install {
     [ $ARCH = 'x86_64' ] && kn_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/knative/kn-${latest}-$PLATFORM-${kn_arch} ] && echo "Knative version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/knative/kn-${latest}-$PLATFORM-${kn_arch} ] && echo "Knative version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/knative ]] && mkdir -p $BUNDLESDIR/knative
 
     # Download Knative
@@ -445,13 +445,13 @@ function terraform_install {
     [ $ARCH = 'x86_64' ] && terraform_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/terraform/terraform-v${latest}-$PLATFORM-${kubens_arch} ] && echo "Terraform version v${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/terraform/terraform-v${latest}-$PLATFORM-${kubens_arch} ] && echo "Terraform version v${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/terraform ]] && mkdir -p $BUNDLESDIR/terraform
 
     # Download terraform
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest Terraform version: v${latest}"
     wget --quiet --continue --show-progress https://releases.hashicorp.com/terraform/${latest}/terraform_${latest}_${PLATFORM}_${terraform_arch}.zip
@@ -483,7 +483,7 @@ function yq_install {
     [ $ARCH = 'x86_64' ] && yq_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/yq/yq-${latest}-$PLATFORM-${yq_arch} ] && echo "yq version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/yq/yq-${latest}-$PLATFORM-${yq_arch} ] && echo "yq version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/yq ]] && mkdir -p $BUNDLESDIR/yq
 
     # Download yq
@@ -515,14 +515,14 @@ function conftest_install {
     [ $ARCH = 'x86_64' ] && conftest_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/conftest/conftest-${latest}-$PLATFORM-${conftest_arch} ] && echo "conftest version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/conftest/conftest-${latest}-$PLATFORM-${conftest_arch} ] && echo "conftest version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/conftest ]] && mkdir -p $BUNDLESDIR/conftest
 
     # Download conftest
     platform_package="$(tr '[:lower:]' '[:upper:]' <<< ${PLATFORM:0:1})${PLATFORM:1}"
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest conftest version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/open-policy-agent/conftest/releases/download/${latest}/conftest_${latest_package}_${platform_package}_${conftest_arch_package}.tar.gz
@@ -555,13 +555,13 @@ function kubeconform_install {
     [ $ARCH = 'x86_64' ] && kubeconform_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kubeconform/kubeconform-${latest}-$PLATFORM-${kubeconform_arch} ] && echo "kubeconform version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kubeconform/kubeconform-${latest}-$PLATFORM-${kubeconform_arch} ] && echo "kubeconform version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kubeconform ]] && mkdir -p $BUNDLESDIR/kubeconform
 
     # Download kubeconform
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest kubeconform version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/yannh/kubeconform/releases/download/${latest}/kubeconform-${PLATFORM}-${kubeconform_arch}.tar.gz
@@ -591,8 +591,8 @@ function oc_install {
 
     # Download oc
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest oc version"
     wget --quiet --continue --show-progress https://mirror.openshift.com/pub/openshift-v4/${oc_arch}/clients/oc/latest/${PLATFORM}/oc.tar.gz
@@ -600,7 +600,7 @@ function oc_install {
     latest=$($tmpDir/oc version | grep "Client Version:" | awk '{ print $3 }')
 
     # Check if already installed
-    [ -f $BUNDLESDIR/oc/oc-${latest}-$PLATFORM-${oc_arch}* ] && echo "oc version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/oc/oc-${latest}-$PLATFORM-${oc_arch}* ] && echo "oc version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/oc ]] && mkdir -p $BUNDLESDIR/oc
 
     mv oc oc-${latest}-$PLATFORM-${oc_arch}
@@ -631,13 +631,13 @@ function gh_install {
     [ $ARCH = 'x86_64' ] && gh_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/gh/gh-${latest}-$PLATFORM-${gh_arch} ] && echo "gh version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/gh/gh-${latest}-$PLATFORM-${gh_arch} ] && echo "gh version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/gh ]] && mkdir -p $BUNDLESDIR/gh
 
     # Download gh
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest gh version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/cli/cli/releases/download/${latest}/gh_${latest_filename}_${PLATFORM}_${gh_arch}.tar.gz
@@ -670,13 +670,13 @@ function operator-sdk_install {
     [ $ARCH = 'x86_64' ] && operatorsdk_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/operator-sdk/operator-sdk-${latest}-$PLATFORM-${operatorsdk_arch} ] && echo "Operator SDK version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/operator-sdk/operator-sdk-${latest}-$PLATFORM-${operatorsdk_arch} ] && echo "Operator SDK version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/operator-sdk ]] && mkdir -p $BUNDLESDIR/operator-sdk
 
     # Download Operator SDK
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest Operator SDK version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/operator-framework/operator-sdk/releases/download/${latest}/operator-sdk_${PLATFORM}_${operatorsdk_arch}
@@ -708,13 +708,13 @@ function kustomize_install {
     [ $ARCH = 'x86_64' ] && kustomize_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kustomize/kustomize-${latest}-$PLATFORM-${kustomize_arch} ] && echo "kustomize version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kustomize/kustomize-${latest}-$PLATFORM-${kustomize_arch} ] && echo "kustomize version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kustomize ]] && mkdir -p $BUNDLESDIR/kustomize
 
     # Download kustomize
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest kustomize version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${latest}/kustomize_${latest}_${PLATFORM}_${kustomize_arch}.tar.gz
@@ -746,13 +746,13 @@ function kubelogin_install {
     [ $ARCH = 'x86_64' ] && kubelogin_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch} ] && echo "kubelogin version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/kubelogin/kubelogin-${latest}-$PLATFORM-${kubelogin_arch} ] && echo "kubelogin version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/kubelogin ]] && mkdir -p $BUNDLESDIR/kubelogin
 
     # Download kubelogin
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest kubelogin version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/Azure/kubelogin/releases/download/${latest}/kubelogin-$PLATFORM-${kubelogin_arch}.zip
@@ -786,13 +786,13 @@ function helm_install {
     [ $ARCH = 'x86_64' ] && helm_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${helm_arch} ] && echo "Helm version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/helm/helm-${latest}-$PLATFORM-${helm_arch} ] && echo "Helm version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/helm ]] && mkdir -p $BUNDLESDIR/helm
 
     # Download Helm
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest helm version: ${latest}"
     wget --quiet --continue --show-progress https://get.helm.sh/helm-${latest}-$PLATFORM-${helm_arch}.tar.gz
@@ -824,13 +824,13 @@ function k9s_install {
     [ $ARCH = 'x86_64' ] && k9s_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/k9s/k9s-${latest}-$PLATFORM-${k9s_arch} ] && echo "k9s version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/k9s/k9s-${latest}-$PLATFORM-${k9s_arch} ] && echo "k9s version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/k9s ]] && mkdir -p $BUNDLESDIR/k9s
 
     # Download k9s
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest k9s version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/derailed/k9s/releases/download/${latest}/k9s_${PLATFORM}_${k9s_arch}.tar.gz
@@ -856,8 +856,8 @@ function redis-cli_install {
 
     # Recreate tmp working dir
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd $tmpDir
 
     # Clone git repo and choose the latest released version
@@ -871,7 +871,7 @@ function redis-cli_install {
     [ $ARCH = 'x86_64' ] && rediscli_arch='amd64'
 
     # Check if already installed
-    [ -d $BUNDLESDIR/redis-cli/redis-cli-$tag-$PLATFORM-$rediscli_arch ] && echo "redis-cli version ${tag} already installed!" && rm -rf $tmpDir && unset tmpDir && exit 1
+    [ -d $BUNDLESDIR/redis-cli/redis-cli-$tag-$PLATFORM-$rediscli_arch ] && echo "redis-cli version ${tag} already installed!" && rm -rf $tmpDir && unset tmpDir && return
     [[ ! -d $BUNDLESDIR/redis-cli ]] && mkdir -p $BUNDLESDIR/redis-cli
 
     # Configure, build and install
@@ -903,13 +903,13 @@ function velero_install {
     [ $ARCH = 'x86_64' ] && velero_arch='amd64'
 
     # Check if already installed
-    [ -f $BUNDLESDIR/velero/velero-${latest}-$PLATFORM-${velero_arch} ] && echo "velero version ${latest} already installed!" && exit 0
+    [ -f $BUNDLESDIR/velero/velero-${latest}-$PLATFORM-${velero_arch} ] && echo "velero version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/velero ]] && mkdir -p $BUNDLESDIR/velero
 
     # Download velero
     tmpDir=$BASEDIR/tmp
-    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && exit 1)
-    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && exit 1)
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
     cd ${tmpDir}
     echo "Downloading latest velero version: ${latest}"
     wget --quiet --continue --show-progress https://github.com/vmware-tanzu/velero/releases/download/${latest}/velero-${latest}-${PLATFORM}-${velero_arch}.tar.gz
