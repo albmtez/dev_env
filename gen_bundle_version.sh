@@ -896,7 +896,7 @@ function velero_install {
     echo "Velero install"
 
     # Find latest version
-    latest=$(curl -s curl -s https://api.github.com/repos/vmware-tanzu/velero/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    latest=$(curl -s https://api.github.com/repos/vmware-tanzu/velero/releases/latest | grep 'tag_name' | cut -d\" -f4)
 
     # Arch x86_64 used in package names
     velero_arch=$ARCH
