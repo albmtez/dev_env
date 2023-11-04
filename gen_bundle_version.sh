@@ -37,6 +37,10 @@ function usage {
     echo "  redis-cli      - redis-cli"
     echo "  velero         - velero"
     echo "  krew           - krew"
+    echo "  krew-krew      - krew plugin"
+    echo "  krew-profefe   - krew profefe plugin"
+    echo "  krew-neat      - krew neat plugin"
+
 }
 
 function git_install {
@@ -969,6 +973,18 @@ function krew_install {
     unset latest
 }
 
+function krew-krew_install {
+    krew install krew
+}
+
+function krew-profefe_install {
+    kubectl krew install profefe
+}
+
+function krew-neat_install {
+    kubectl krew install neat
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -1069,6 +1085,15 @@ case "$1" in
     "krew")
         krew_install
         ;;
+    "krew-krew")
+        krew-krew_install
+        ;;
+    "krew-profefe")
+        krew-profefe_install
+        ;;
+    "krew-neat")
+        krew-neat_install
+        ;;
     "all")
         git_install
         maven_install
@@ -1096,6 +1121,9 @@ case "$1" in
         redis-cli_install
         velero_install
         krew_install
+        krew-krew_install
+        krew-profefe_install
+        krew-neat_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
