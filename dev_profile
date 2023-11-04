@@ -81,4 +81,4 @@ alias kns=kubens
 source <(oc completion zsh)
 
 # Krew
-export PATH=$HOME/.krew:$PATH
+export PATH=$HOME/.krew/bin:$PATH
