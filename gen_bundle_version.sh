@@ -28,6 +28,7 @@ function usage {
     echo "  conftest       - conftest"
     echo "  kubeconform    - kubeconform"
     echo "  oc             - Openshift v4 CLI"
+    echo "  opm            - OpenShift v4 OPM CLI"
     echo "  gh             - GitHub CLI"
     echo "  operator-sdk   - Operator SDK"
     echo "  kustomize      - Kustomize"
@@ -36,6 +37,11 @@ function usage {
     echo "  k9s            - K9s"
     echo "  redis-cli      - redis-cli"
     echo "  velero         - velero"
+    echo "  krew           - krew"
+    echo "  krew-krew      - krew plugin"
+    echo "  krew-profefe   - krew profefe plugin"
+    echo "  krew-neat      - krew neat plugin"
+
 }
 
 function git_install {
@@ -619,6 +625,43 @@ function oc_install {
     unset latest
 }
 
+function opm_install {
+    echo "Openshift OPM CLI install"
+
+    # Arch x86_64 used in package names
+    opm_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && opm_arch='amd64'
+
+    # Download oc
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
+    cd ${tmpDir}
+    echo "Downloading latest oc version"
+    wget --quiet --continue --show-progress https://mirror.openshift.com/pub/openshift-v4/${opm_arch}/clients/ocp/latest/opm-${PLATFORM}.tar.gz
+    tar xzvf opm-${PLATFORM}.tar.gz
+    latest=$($tmpDir/opm version | awk '{ print $2 }' | awk -F: '{ print $2 }' | awk -F'"' '{ print $2 }')
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/opm/opm-${latest}-$PLATFORM-${opm_arch}* ] && echo "opm version ${latest} already installed!" && return
+    [[ ! -d $BUNDLESDIR/opm ]] && mkdir -p $BUNDLESDIR/opm
+
+    mv opm opm-${latest}-$PLATFORM-${opm_arch}
+    mv opm-${latest}-$PLATFORM-${opm_arch} $BUNDLESDIR/opm
+
+    # Set the default version
+    rm -f $BUNDLESDIR/opm/default-$PLATFORM-${opm_arch}
+    ln -s opm-$latest-$PLATFORM-${opm_arch} $BUNDLESDIR/opm/default-$PLATFORM-${opm_arch}
+
+    # # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${opm_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${opm_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${opm_arch}/opm ]] && ln -s ../../bundles/opm/default-$PLATFORM-${opm_arch} $BINDIR/$PLATFORM-${opm_arch}/opm
+
+    unset tmpDir
+    unset opm_arch
+    unset latest
+}
+
 function gh_install {
     echo "GitHub CLI install"
 
@@ -930,6 +973,56 @@ function velero_install {
     unset latest
 }
 
+function krew_install {
+    echo "krew install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/kubernetes-sigs/krew/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    krew_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && krew_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/krew/krew-${latest}-$PLATFORM-${krew_arch} ] && echo "krew version ${latest} already installed!" && return
+    [[ ! -d $BUNDLESDIR/krew ]] && mkdir -p $BUNDLESDIR/krew
+
+    # Download krew
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
+    cd ${tmpDir}
+    echo "Downloading latest krew version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/kubernetes-sigs/krew/releases/download/${latest}/krew-${PLATFORM}_${krew_arch}.tar.gz
+    tar xzvf krew-${PLATFORM}_${krew_arch}.tar.gz
+
+    mv krew-${PLATFORM}_${krew_arch} $BUNDLESDIR/krew/krew-${latest}-$PLATFORM-${krew_arch}
+    
+    # Set the default version
+    rm -f $BUNDLESDIR/krew/default-$PLATFORM-${krew_arch}
+    ln -s krew-$latest-$PLATFORM-${krew_arch} $BUNDLESDIR/krew/default-$PLATFORM-${krew_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${krew_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${krew_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${krew_arch}/krew ]] && ln -s ../../bundles/krew/default-$PLATFORM-${krew_arch} $BINDIR/$PLATFORM-${krew_arch}/krew
+
+    unset tmpDir
+    unset krew_arch
+    unset latest
+}
+
+function krew-krew_install {
+    krew install krew
+}
+
+function krew-profefe_install {
+    kubectl krew install profefe
+}
+
+function krew-neat_install {
+    kubectl krew install neat
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -1003,6 +1096,9 @@ case "$1" in
     "oc")
         oc_install
         ;;
+    "opm")
+        opm_install
+        ;;
     "gh")
         gh_install
         ;;
@@ -1027,6 +1123,18 @@ case "$1" in
     "velero")
         velero_install
         ;;
+    "krew")
+        krew_install
+        ;;
+    "krew-krew")
+        krew-krew_install
+        ;;
+    "krew-profefe")
+        krew-profefe_install
+        ;;
+    "krew-neat")
+        krew-neat_install
+        ;;
     "all")
         git_install
         maven_install
@@ -1045,6 +1153,7 @@ case "$1" in
         conftest_install
         kubeconform_install
         oc_install
+        opm_install
         gh_install
         operator-sdk_install
         kustomize_install
@@ -1053,6 +1162,10 @@ case "$1" in
         k9s_install
         redis-cli_install
         velero_install
+        krew_install
+        krew-krew_install
+        krew-profefe_install
+        krew-neat_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1

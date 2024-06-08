@@ -79,3 +79,6 @@ alias kns=kubens
 # oc autocompletion
 # the oc oh-my-zsh plugin doesn't work fine
 source <(oc completion zsh)
+
+# Krew
+export PATH=$HOME/.krew/bin:$PATH
