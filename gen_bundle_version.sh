@@ -646,7 +646,7 @@ function opm_install {
     [ -f $BUNDLESDIR/opm/opm-${latest}-$PLATFORM-${opm_arch}* ] && echo "opm version ${latest} already installed!" && return
     [[ ! -d $BUNDLESDIR/opm ]] && mkdir -p $BUNDLESDIR/opm
 
-    mv opm opm-${latest}-$PLATFORM-${opm_arch}
+    mv opm-rhel8 opm-${latest}-$PLATFORM-${opm_arch}
     mv opm-${latest}-$PLATFORM-${opm_arch} $BUNDLESDIR/opm
 
     # Set the default version
