@@ -640,7 +640,7 @@ function opm_install {
     echo "Downloading latest oc version"
     wget --quiet --continue --show-progress https://mirror.openshift.com/pub/openshift-v4/${opm_arch}/clients/ocp/latest/opm-${PLATFORM}.tar.gz
     tar xzvf opm-${PLATFORM}.tar.gz
-    latest=$($tmpDir/opm version | awk '{ print $2 }' | awk -F: '{ print $2 }' | awk -F'"' '{ print $2 }')
+    latest=$($tmpDir/opm-rhel8 version | awk '{ print $2 }' | awk -F: '{ print $2 }' | awk -F'"' '{ print $2 }')
 
     # Check if already installed
     [ -f $BUNDLESDIR/opm/opm-${latest}-$PLATFORM-${opm_arch}* ] && echo "opm version ${latest} already installed!" && return
