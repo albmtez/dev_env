@@ -1059,7 +1059,7 @@ function kubebuilder_install {
 
     # Link binary file
     [[ ! -d $BINDIR/$PLATFORM-${kubebuilder_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubebuilder_arch}
-    [[ ! -f $BINDIR/$PLATFORM-${kubebuilder_arch}/krew ]] && ln -s ../../bundles/kubebuilder/default-$PLATFORM-${kubebuilder_arch} $BINDIR/$PLATFORM-${kubebuilder_arch}/kubebuilder
+    [[ ! -f $BINDIR/$PLATFORM-${kubebuilder_arch}/kubebuilder ]] && ln -s ../../bundles/kubebuilder/default-$PLATFORM-${kubebuilder_arch} $BINDIR/$PLATFORM-${kubebuilder_arch}/kubebuilder
 
     unset tmpDir
     unset kubebuilder_arch
