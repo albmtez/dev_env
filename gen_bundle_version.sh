@@ -41,7 +41,7 @@ function usage {
     echo "  krew-krew      - krew plugin"
     echo "  krew-profefe   - krew profefe plugin"
     echo "  krew-neat      - krew neat plugin"
-    echo " krew-rabbitmq  - krew rabbitmq plugin"
+    echo "  krew-rabbitmq  - krew rabbitmq plugin"
 }
 
 function git_install {
