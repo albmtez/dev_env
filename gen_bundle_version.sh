@@ -41,7 +41,7 @@ function usage {
     echo "  krew-krew      - krew plugin"
     echo "  krew-profefe   - krew profefe plugin"
     echo "  krew-neat      - krew neat plugin"
-
+    eccho " krew-rabbitmq  - krew rabbitmq plugin"
 }
 
 function git_install {
@@ -1023,6 +1023,10 @@ function krew-neat_install {
     kubectl krew install neat
 }
 
+function krew-rabbitmq_install {
+    kubectl krew install rabbitmq
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -1135,6 +1139,9 @@ case "$1" in
     "krew-neat")
         krew-neat_install
         ;;
+    "krew-rabbitmq")
+        krew-rabbitmq_instal
+        ;;
     "all")
         git_install
         maven_install
@@ -1166,6 +1173,7 @@ case "$1" in
         krew-krew_install
         krew-profefe_install
         krew-neat_install
+        krew-rabbitmq_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
