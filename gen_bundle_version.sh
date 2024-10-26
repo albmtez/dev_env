@@ -41,7 +41,7 @@ function usage {
     echo "  krew-krew      - krew plugin"
     echo "  krew-profefe   - krew profefe plugin"
     echo "  krew-neat      - krew neat plugin"
-    eccho " krew-rabbitmq  - krew rabbitmq plugin"
+    echo " krew-rabbitmq  - krew rabbitmq plugin"
 }
 
 function git_install {
@@ -1140,7 +1140,7 @@ case "$1" in
         krew-neat_install
         ;;
     "krew-rabbitmq")
-        krew-rabbitmq_instal
+        krew-rabbitmq_install
         ;;
     "all")
         git_install
