@@ -42,6 +42,7 @@ function usage {
     echo "  krew-profefe   - krew profefe plugin"
     echo "  krew-neat      - krew neat plugin"
     echo "  krew-rabbitmq  - krew rabbitmq plugin"
+    echo "  kubebuilder    - Kubebuilder"
 }
 
 function git_install {
@@ -1027,6 +1028,44 @@ function krew-rabbitmq_install {
     kubectl krew install rabbitmq
 }
 
+function kubebuilder_install {
+    echo "kubebuilder install"
+
+    # Find latest version
+    latest=$(curl -s https://api.github.com/repos/kubernetes-sigs/kubebuilder/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
+    # Arch x86_64 used in package names
+    kubebuilder_arch=$ARCH
+    [ $ARCH = 'x86_64' ] && kubebuilder_arch='amd64'
+
+    # Check if already installed
+    [ -f $BUNDLESDIR/kubebuilder/kubebuilder-${latest}-$PLATFORM-${kubebuilder_arch} ] && echo "kubebuilder version ${latest} already installed!" && return
+    [[ ! -d $BUNDLESDIR/kubebuilder ]] && mkdir -p $BUNDLESDIR/kubebuilder
+
+    # Download kubebuilder
+    tmpDir=$BASEDIR/tmp
+    [[ -d $tmpDir ]] && rm -rf $tmpDir && echo "tmp dir $tmpDir deleted" || (echo "Error deleting tmp dir $tmpDir" && return)
+    mkdir $tmpDir && echo "Temp dir $tmpDir created" || (echo "Error creating tmp dir $tmpDir" && return)
+    cd ${tmpDir}
+    echo "Downloading latest kubebuilder version: ${latest}"
+    wget --quiet --continue --show-progress https://github.com/kubernetes-sigs/kubebuilder/releases/download/${latest}/kubebuilder_${PLATFORM}_${kubebuilder_arch}
+
+    mv kubebuilder_${PLATFORM}_${kubebuilder_arch} $BUNDLESDIR/kubebuilder/kubebuilder-${latest}-$PLATFORM-${kubebuilder_arch}
+    chmod u+x $BUNDLESDIR/kubebuilder/kubebuilder-${latest}-$PLATFORM-${kubebuilder_arch}
+    
+    # Set the default version
+    rm -f $BUNDLESDIR/kubebuilder/default-$PLATFORM-${kubebuilder_arch}
+    ln -s kubebuilder-$latest-$PLATFORM-${kubebuilder_arch} $BUNDLESDIR/kubebuilder/default-$PLATFORM-${kubebuilder_arch}
+
+    # Link binary file
+    [[ ! -d $BINDIR/$PLATFORM-${kubebuilder_arch} ]] && mkdir -p $BINDIR/$PLATFORM-${kubebuilder_arch}
+    [[ ! -f $BINDIR/$PLATFORM-${kubebuilder_arch}/krew ]] && ln -s ../../bundles/kubebuilder/default-$PLATFORM-${kubebuilder_arch} $BINDIR/$PLATFORM-${kubebuilder_arch}/kubebuilder
+
+    unset tmpDir
+    unset kubebuilder_arch
+    unset latest
+}
+
 # Determine OS platform
 PLATFORM=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
@@ -1142,6 +1181,9 @@ case "$1" in
     "krew-rabbitmq")
         krew-rabbitmq_install
         ;;
+    "kubebuilder")
+        kubebuilder_install
+        ;;
     "all")
         git_install
         maven_install
@@ -1174,6 +1216,7 @@ case "$1" in
         krew-profefe_install
         krew-neat_install
         krew-rabbitmq_install
+        kubebuilder_install
         ;;
     *)
         echo "Error: Bundle or package name invalid" && usage && exit 1
